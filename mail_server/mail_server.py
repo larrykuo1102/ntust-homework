@@ -1,7 +1,7 @@
 from distutils.command.clean import clean
 import socket
 
-from click import help_option
+
 
 
 helo_message = 'HELO {}\r\n'.format(socket.gethostname())
@@ -43,7 +43,7 @@ def send_mail() :
     # print( "Server response: ", client_socket.recv(1024).decode()) # helo response
 
 
-    user_input = input("Hello! What is your email address?\n")
+    user_input = 'larrykuo.tech@gmail.com'
     print('C: ', mailfrom_message.format(user_input))
     client_socket.send(mailfrom_message.format(user_input).encode())
 
