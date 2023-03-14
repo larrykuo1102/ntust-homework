@@ -1,6 +1,7 @@
 # include <iostream>
 # include <vector>
 # include <queue>
+# include <functional>
 using namespace std ;
 
 
@@ -23,7 +24,8 @@ public:
 
 void Schedule( vector<vector<int> > task, int Display, int type ) {
     cout << "Scheduler Begin" << endl ;
-    vector<vector<int> > readylist ; // { index, excutionTime, period}
+    cout << task[0][1] << " " << task[1][1] << endl ;
+    vector<vector<int> > readylist ; // { index, excutionTime, period, current}
     vector<int> currenttask, outputtask ;
     priority_queue<vector<int>, vector<vector<int>>, Compare> pqueue;
 
@@ -33,17 +35,59 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     else if ( type == 1 ) {
         pqueue = priority_queue<vector<int>, vector<vector<int>>, Compare>(Compare{rate_compare});
     }
+    cout << "Success declare priority queue" << endl ;
     // priority queue
     bool start = true ;
-    int time = 0, taskaction_output, taskaction_current  = 0 ;
+    int preempted = 0 ;
+    int time = 0, taskaction_output = -1, taskaction_current  = 0 ; // task action: start, 0, end, 1, preempted, 2, resume, 3
+    for ( int i = 0 ; i < task.size() ; i ++ ) {
+        pqueue.push({i,task[i][0],task[i][1], task[i][0]}) ;
+    } // for
     // push task to queue
+    cout << "push task to queue" << endl ;
     // erase from readylist 
-    while(! currenttask.empty() || ! pqueue.empty() ) { // 
+    while( readylist.size()!= task.size() || ! pqueue.empty() ) { // 
+        // cout << "Time: " << time << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
         outputtask = currenttask ;
+        if ( ! outputtask.empty() && outputtask[3] == 0 ) 
+            taskaction_output = 1 ;
+        else if ( ! outputtask.empty() && outputtask[3] != 0  ) {
+            taskaction_output = 2 ;
+            preempted ++ ;
+        }
+
         // get task
-        vector<int> newtask ; 
+        vector<int> newtask = pqueue.top() ; 
+        pqueue.pop() ;
+        // cout << "test " << pqueue.size() << endl ;
         currenttask = newtask ;
+
+        if ( newtask[3] != newtask[1] )
+            taskaction_current = 3 ;
+        else if ( newtask[3] == newtask[1] ) 
+            taskaction_current = 0 ;
         // do task
+        newtask[3] -- ;
+        if ( newtask[3] > 0 ) {
+            pqueue.push( newtask ) ;
+        } // if
+        else if ( newtask[3] == 0 ) {
+      
+            int tempindex = newtask[0] ;
+            readylist.push_back( { tempindex, task[tempindex][0], task[tempindex][1], task[tempindex][0] }) ;
+    
+
+        }
+        
+        if ( !readylist.empty()) { // check period condition
+            for ( int k = 0 ; k < readylist.size() ; k ++ ) {
+                if ( time % readylist[k][2] == 0 ) {
+                    pqueue.push( readylist[k] ) ;
+                    readylist.erase(readylist.begin()+k ) ;
+                    k -- ;
+                }
+            }
+        } // else if
         // push to priority queue :
         //      if task not done push into queue
         //      if the task done -> push into readylist
@@ -54,13 +98,14 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         if ( Display == 1 ) {
             cout << time << " " ;
             if ( !outputtask.empty()) {
-                cout << outputtask[1] << " " << taskaction_output << endl ;
+                cout << outputtask[1] << " " << taskaction_output << " " ;
             } // if
             cout << currenttask[1] << " " << taskaction_current << endl ;
         } // if
         time ++ ;
     } // while
 
+    cout << " Total Time " << time+1 << " Preempted " << preempted << " Finished" << endl ;
 } //
 
 
