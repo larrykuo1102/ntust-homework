@@ -1,4 +1,5 @@
-k = 8
+k = 10 # N queens
+need_print = 0 # 0: not print 1: print
 all_list = []
 test_all_list = []
 def put_queen(state:list,n:int):
@@ -102,11 +103,12 @@ def main( n ):
     put_queen(my_state,n)
     print(len(all_list))
     
-    # for i in test_all_list:
-    #     print(i)
+    if need_print == 1 :
+        for i in test_all_list:
+            print(i)
     print(len(test_all_list))
 main(k)
-a = [[8, 8], [4, 7], [1, 6], [3, 5], [6, 4], [2, 3], [7, 2], [5, 1]]
+# a = [[8, 8], [4, 7], [1, 6], [3, 5], [6, 4], [2, 3], [7, 2], [5, 1]]
 # print(X_Y_exchange(a))
 # print(X_projection(a))
 # print(Y_projection(a))
