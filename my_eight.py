@@ -1,4 +1,5 @@
-k = 10 # N queens
+from itertools import combinations
+k = 8 # N queens
 need_print = 0 # 0: not print 1: print
 all_list = []
 test_all_list = []
@@ -102,13 +103,93 @@ def main( n ):
     my_state :list = []
     put_queen(my_state,n)
     print(len(all_list))
+    test = [[1, 1], [2, 2], [3, 5], [4, 8], [5, 3], [6, 7], [7, 6], [8, 4]]
+    comb_test = list(combinations(test,4)) 
+    print( len( comb_test ) )
+    all_possible = [[[1, 1], [2, 2], [3, 5], [4, 8], [5, 3], [6, 7], [7, 6], [8, 4]], [[1, 2], [2, 1], [3, 7], [4, 4], [5, 6], [6, 5], [7, 3], [8, 8]], [[1, 3], [2, 6], [3, 1], [4, 5], [5, 4], [6, 2], [7, 8], [8, 7]], [[1, 4], [2, 8], [3, 3], [4, 1], [5, 7], [6, 6], [7, 5], [8, 2]], [[1, 5], [2, 7], [3, 8], [4, 6], [5, 1], [6, 4], [7, 2], [8, 3]], [[1, 6], [2, 3], [3, 2], [4, 7], [5, 8], [6, 1], [7, 4], [8, 5]], [[1, 7], [2, 5], [3, 4], [4, 3], [5, 2], [6, 8], [7, 1], [8, 6]], [[1, 8], [2, 4], [3, 6], [4, 2], [5, 5], [6, 3], [7, 7], [8, 1]]]
+    # testall = [[1,1],[3,5],[4,8],[6,7],[12,1],[33,5],[45,86],[62,7]]
+    # all_list.append(testall)
+    success = []
+    yes = True
+    for row in all_list:
+        for single in comb_test :
+            for i in single:
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+            
+            for i in X_Y_exchange(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+
+            for i in X_projection(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+
+            for i in Y_projection(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+
+            for i in XY_projection(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+            
+            for i in rotate_90(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+            
+            for i in rotate_180(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+            
+            for i in rotate_270(test):
+                if i not in row :
+                    yes = False
+            if yes == True:
+                success.append(row)
+            yes = True
+        
+
+    print( len(success) )
+    for i in success :
+        print( i)
+    
     
     if need_print == 1 :
         for i in test_all_list:
             print(i)
     print(len(test_all_list))
 main(k)
-# a = [[8, 8], [4, 7], [1, 6], [3, 5], [6, 4], [2, 3], [7, 2], [5, 1]]
+a = [[8, 8], [4, 7], [1, 6], [3, 5], [6, 4], [2, 3], [7, 2], [5, 1],[1,1],[3,5],[4,8],[6,7]]
+
+# test = [[1,1],[3,5],[4,8],[6,7]]
+
+# yes = True
+# for i in test :
+#     if i not in a :
+#         yes = False
+# print(yes)
+
 # print(X_Y_exchange(a))
 # print(X_projection(a))
 # print(Y_projection(a))
