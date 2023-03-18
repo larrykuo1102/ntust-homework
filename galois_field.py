@@ -1,10 +1,17 @@
 import galois
-import pprint
 import numpy as np
 print(galois.__version__)
-GF = galois.GF(3**2, repr="int") # poly, int, power
+value = 3**2
+GF = galois.GF(int(value),repr="poly") # poly, int, power
 
 
+mult_table = [[GF(i)*GF(j) for j in range(int(value))] for i in range(int(value))]
+for index,row in enumerate(mult_table):
+    for index,column in enumerate(row):
+        if str("α + 1") == str(column) : # α + 1
+                print( "(" + str(column) + ")", end="\t")
+        print( column, end="\t" )
+    print()
 
 mult_table = [[GF(i)*GF(j) for j in range(3**2)] for i in range(3**2)]
 note_list = []
