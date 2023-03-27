@@ -1,8 +1,8 @@
 from itertools import combinations
-k = 8 # N queens
+k = 10 # N queens
 need_print = 0 # 0: not print 1: print
 all_list = []
-test_all_list = []
+independent_list = []
 def put_queen(state:list,n:int):
     if ( n > 0 ):
         for row in range(1,k+1):
@@ -83,7 +83,7 @@ def check_duplicate_and_append(current_state) :
                 count_rotate_180 +=1
             if i in rotate_270(each):
                 count_rotate_270 +=1
-        if count_exist == 8 or count_X_Y_exist == k or count_X_projection == k or count_Y_projection == k or count_XY_projection == k :
+        if count_exist == k or count_X_Y_exist == k or count_X_projection == k or count_Y_projection == k or count_XY_projection == k :
             success = False
         elif count_rotate_270 == k or count_rotate_90 == k or count_rotate_180 == k :
             success = False
@@ -97,102 +97,100 @@ def check_duplicate_and_append(current_state) :
             count_rotate_180 = 0
             count_rotate_270 = 0
     if success :
-        test_all_list.append(current_state.copy())
+        independent_list.append(current_state.copy())
+
+def find_list_in_alllist(comb_test, row):
+    success = []
+    yes = True
+    for single in comb_test :
+        for i in single:
+            if i not in row :
+                yes = False
+        if yes == True:
+            success.append(["normal",row])
+        yes = True
+        
+        # for i in X_Y_exchange(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["X_Y_exchange",row])
+        # yes = True
+
+        # for i in X_projection(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["X_projection",row])
+        # yes = True
+
+        # for i in Y_projection(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["Y_projection",row])
+        # yes = True
+
+        # for i in XY_projection(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["XY_projection",row])
+        # yes = True
+        
+        # for i in rotate_90(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["rotate_90",row])
+        # yes = True
+        
+        # for i in rotate_180(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["rotate_180",row])
+        # yes = True
+        
+        # for i in rotate_270(single):
+        #     if i not in row :
+        #         yes = False
+        # if yes == True:
+        #     success.append(["rotate_270",row])
+        # yes = True
+    return success
 
 def main( n ):
     my_state :list = []
     put_queen(my_state,n)
     print(len(all_list))
-    test = [[1, 1], [2, 2], [3, 5], [4, 8], [5, 3], [6, 7], [7, 6], [8, 4]]
-    comb_test = list(combinations(test,4)) 
-    print( len( comb_test ) )
-    all_possible = [[[1, 1], [2, 2], [3, 5], [4, 8], [5, 3], [6, 7], [7, 6], [8, 4]], [[1, 2], [2, 1], [3, 7], [4, 4], [5, 6], [6, 5], [7, 3], [8, 8]], [[1, 3], [2, 6], [3, 1], [4, 5], [5, 4], [6, 2], [7, 8], [8, 7]], [[1, 4], [2, 8], [3, 3], [4, 1], [5, 7], [6, 6], [7, 5], [8, 2]], [[1, 5], [2, 7], [3, 8], [4, 6], [5, 1], [6, 4], [7, 2], [8, 3]], [[1, 6], [2, 3], [3, 2], [4, 7], [5, 8], [6, 1], [7, 4], [8, 5]], [[1, 7], [2, 5], [3, 4], [4, 3], [5, 2], [6, 8], [7, 1], [8, 6]], [[1, 8], [2, 4], [3, 6], [4, 2], [5, 5], [6, 3], [7, 7], [8, 1]]]
-    # testall = [[1,1],[3,5],[4,8],[6,7],[12,1],[33,5],[45,86],[62,7]]
+    if need_print == 1 :
+        for i in independent_list:
+            print(i)
+    print(len(independent_list))
+    print("==================================")
+
+
+    # 8 queen all possible
+    # all_possible = [[[1, 1], [2, 2], [3, 5], [4, 8], [5, 3], [6, 7], [7, 6], [8, 4]], [[1, 2], [2, 1], [3, 7], [4, 4], [5, 6], [6, 5], [7, 3], [8, 8]], [[1, 3], [2, 6], [3, 1], [4, 5], [5, 4], [6, 2], [7, 8], [8, 7]], [[1, 4], [2, 8], [3, 3], [4, 1], [5, 7], [6, 6], [7, 5], [8, 2]], [[1, 5], [2, 7], [3, 8], [4, 6], [5, 1], [6, 4], [7, 2], [8, 3]], [[1, 6], [2, 3], [3, 2], [4, 7], [5, 8], [6, 1], [7, 4], [8, 5]], [[1, 7], [2, 5], [3, 4], [4, 3], [5, 2], [6, 8], [7, 1], [8, 6]], [[1, 8], [2, 4], [3, 6], [4, 2], [5, 5], [6, 3], [7, 7], [8, 1]]]
+    # 10 queen all possible
+    all_possible = [[[1, 1], [2, 6], [3, 4], [4, 3], [5, 9], [6, 2], [7, 8], [8, 7], [9, 5], [10, 10]], [[1, 2], [2, 1], [3, 8], [4, 6], [5, 7], [6, 4], [7, 5], [8, 3], [9, 10], [10, 9]], [[1, 3], [2, 7], [3, 1], [4, 9], [5, 5], [6, 6], [7, 2], [8, 10], [9, 4], [10, 8]], [[1, 4], [2, 2], [3, 5], [4, 1], [5, 3], [6, 8], [7, 10], [8, 6], [9, 9], [10, 7]], [[1, 5], [2, 8], [3, 9], [4, 4], [5, 1], [6, 10], [7, 7], [8, 2], [9, 3], [10, 6]], [[1, 6], [2, 3], [3, 2], [4, 7], [5, 10], [6, 1], [7, 4], [8, 9], [9, 8], [10, 5]], [[1, 7], [2, 9], [3, 6], [4, 10], [5, 8], [6, 3], [7, 1], [8, 5], [9, 2], [10, 4]], [[1, 8], [2, 4], [3, 10], [4, 2], [5, 6], [6, 5], [7, 9], [8, 1], [9, 7], [10, 3]], [[1, 9], [2, 10], [3, 3], [4, 5], [5, 4], [6, 7], [7, 6], [8, 8], [9, 1], [10, 2]], [[1, 10], [2, 5], [3, 7], [4, 8], [5, 2], [6, 9], [7, 3], [8, 4], [9, 6], [10, 1]]]
     # all_list.append(testall)
     success = []
-    yes = True
-    for row in all_list:
-        for single in comb_test :
-            for i in single:
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-            
-            for i in X_Y_exchange(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-
-            for i in X_projection(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-
-            for i in Y_projection(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-
-            for i in XY_projection(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-            
-            for i in rotate_90(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-            
-            for i in rotate_180(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
-            
-            for i in rotate_270(test):
-                if i not in row :
-                    yes = False
-            if yes == True:
-                success.append(row)
-            yes = True
+    for index,possible in enumerate(all_possible) :
+        print( index+1)
+        comb_test = list(combinations(possible,5))
+        print( len( comb_test ), " combinations" )
+        for row in all_list:
+            success += find_list_in_alllist( comb_test ,row)
         
-
-    print( len(success) )
-    for i in success :
-        print( i)
+        print( "length: ", len( success ) )
+        list.sort(success)
+        for i in success :
+            print( i)
+        print("==================================")
+        success.clear()
     
     
-    if need_print == 1 :
-        for i in test_all_list:
-            print(i)
-    print(len(test_all_list))
+    
 main(k)
-a = [[8, 8], [4, 7], [1, 6], [3, 5], [6, 4], [2, 3], [7, 2], [5, 1],[1,1],[3,5],[4,8],[6,7]]
-
-# test = [[1,1],[3,5],[4,8],[6,7]]
-
-# yes = True
-# for i in test :
-#     if i not in a :
-#         yes = False
-# print(yes)
-
-# print(X_Y_exchange(a))
-# print(X_projection(a))
-# print(Y_projection(a))
-# print(rotate_180(a))
-# print(rotate_270(a))
-# print(rotate_90(a))
