@@ -9,9 +9,9 @@
 ## Irreducible_polys
 Possible answers in eight queens problem
 
-1. x^2 + 1 [possible answers](./GF_Answer/GF_Answer/poly_possible_ans1.txt)
-2. x^2 + x + 2 [possible answers](./GF_Answer/GF_Answer/poly_possible_ans2.txt)
-3. x^2 + 2x + 2 [possible answers](./GF_Answer/GF_Answer/poly_possible_ans3.txt)
+1. x^2 + 1 [possible answers](./GF_Answer/poly_possible_ans1.txt)
+2. x^2 + x + 2 [possible answers](./GF_AnswerGF_Answer/poly_possible_ans2.txt)
+3. x^2 + 2x + 2 [possible answers](./GF_Answer/poly_possible_ans3.txt)
 
 ## multiple table
 1. [general table](./GF_Answer/GF(3%5E2)_irr_poly.txt) 
