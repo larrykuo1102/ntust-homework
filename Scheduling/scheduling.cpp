@@ -9,12 +9,15 @@ struct taskTime {
     int index ;
     int excution ;
     int period ;
-    pair<int,int> current ;
+    int current ;
     pair<int,int> deadline ;
+    taskTime(int index,int excution,int period, int current, pair<int,int> deadline) : index(index),excution(excution), period(period),
+        current(current),deadline(deadline) {}
+    taskTime(){}
 }; 
 
 int addBigNumber( pair<int,int> time ) {
-    if ( time.first +1 == INT_MAX ) {
+    if ( time.first +1 == INT32_MAX ) {
         time.second ++ ;
         time.first = 0 ;
     }
@@ -52,7 +55,8 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     cout << task[0][1] << " " << task[1][1] << endl ;
     vector<taskTime> readylist ; // { index, excutionTime, period, current, deadline}
     // vector<taskTime> readylist_map ;
-    vector<int> currenttask, outputtask ;
+    taskTime currenttask ;
+    taskTime outputtask ;
     priority_queue<taskTime, vector<taskTime>, Compare> pqueue;
     // priority_queue<vector<taskTime>, vector<vector<taskTime>>, Compare> pqueue;
 
@@ -69,7 +73,8 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     int  taskaction_output = -1, taskaction_current  = 0 ; // task action: start, 0, end, 1, preempted, 2, resume, 3
     pair<int,int> time ;
     for ( int i = 0 ; i < task.size() ; i ++ ) {
-        pqueue.push({i,task[i][0],task[i][1], task[i][0],task[i][1]}) ;
+        pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][1], pair<int,int>(task[i][1],0 )) ) ;
+        // pqueue.push({i,task[i][0],task[i][1], task[i][0],task[i][1]}) ;
     } // for
     // push task to queue
     cout << "push task to queue" << endl ;
@@ -78,32 +83,48 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     while( readylist.size()!= task.size() || ! pqueue.empty() ) { // 
         // cout << "Time: " << time << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
         outputtask = currenttask ;
-        if ( ! outputtask.empty() && outputtask[3] == 0 ) 
+        if ( ! outputtask.empty() && outputtask.current == 0 ) 
             taskaction_output = 1 ;
-        else if ( ! outputtask.empty() && outputtask[3] != 0  ) {
+        else if ( ! outputtask.empty() && outputtask.current != 0  ) {
             taskaction_output = 2 ;
             preempted ++ ;
         }
 
         // get task
-        vector<int> newtask = pqueue.top() ; 
+        taskTime  newtask = pqueue.top() ; 
         pqueue.pop() ;
         // cout << "test " << pqueue.size() << endl ;
         currenttask = newtask ;
 
-        if ( newtask[3] != newtask[1] )
+        
+        if ( newtask.current != newtask.excution )
             taskaction_current = 3 ;
-        else if ( newtask[3] == newtask[1] ) 
+        else if ( newtask.excution == newtask.excution ) 
             taskaction_current = 0 ;
         // do task
-        newtask[3] -- ;
-        if ( newtask[3] > 0 ) {
+        newtask.current -- ;
+        if ( newtask.current > 0 ) {
             pqueue.push( newtask ) ;
         } // if
-        else if ( newtask[3] == 0 ) {
-            int tempindex = newtask[0] ;
-            readylist.push_back( { tempindex, task[tempindex][0], task[tempindex][1], task[tempindex][0], task[tempindex][4] }) ;
+        else if ( newtask.current == 0 ) {
+            int tempindex = newtask.excution ;
+            // pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][1], pair<int,int>(task[i][1],0 )) ) ;
+            readylist.push_back( taskTime( tempindex, task[tempindex][0], task[tempindex][1], task[tempindex][1], pair<int,int>(task[tempindex][1]+time.first,0+time.second ) )) ;
+            // readylist.push_back( { tempindex, task[tempindex][0], task[tempindex][1], task[tempindex][0], task[tempindex][4] }) ;
         }
+        // if ( newtask[3] != newtask[1] )
+        //     taskaction_current = 3 ;
+        // else if ( newtask[3] == newtask[1] ) 
+        //     taskaction_current = 0 ;
+        // // do task
+        // newtask[3] -- ;
+        // if ( newtask[3] > 0 ) {
+        //     pqueue.push( newtask ) ;
+        // } // if
+        // else if ( newtask[3] == 0 ) {
+        //     int tempindex = newtask[0] ;
+        //     readylist.push_back( { tempindex, task[tempindex][0], task[tempindex][1], task[tempindex][0], task[tempindex][4] }) ;
+        // }
         
         if ( !readylist.empty()) { // check period condition
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
@@ -124,12 +145,12 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         if ( Display == 1 ) {
             cout << timefront << " " ;
             if ( !outputtask.empty()) {
-                cout << outputtask[1] << " " << taskaction_output << " " ;
+                cout << outputtask.excution << " " << taskaction_output << " " ;
             } // if
-            cout << currenttask[1] << " " << taskaction_current << endl ;
+            cout << currenttask.excution << " " << taskaction_current << endl ;
         } // if
 
-        addbigNumber(time) ;
+        addBigNumber(time) ;
     } // while
 
     cout << " Total Time " << timefront+1 << " Preempted " << preempted << " Finished" << endl ;
