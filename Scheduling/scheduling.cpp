@@ -119,7 +119,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{deadline_compare});
     }
     else if ( type == 0 ) {
-        cout << "rate _ compare" ;
+        // cout << "rate _ compare" ;
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{rate_compare});
     }
     cout << "Success declare priority queue" << endl ;
@@ -142,7 +142,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     // finish the task and take next task
     // checkFinishCondition(readylist) -> bool
     while( !checkFinishCondition(readylist, task.size()) || ! pqueue.empty() ) { // 
-        // cout << "Time: " << time.first << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
+        // cout << "Time: " << time.first << " " << time.second << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
         
         outputtime = time ;
         taskTime newtask ; 
@@ -166,40 +166,44 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
 
         pair<int,int> temptime = addBigNumberTaskTime( time, currenttask.current ) ;
         // cout << temptime.first << " test" << temptime.second << endl ;
-        if ( !readylist.empty()) { // check period condition
+        if ( currenttask.index == -1 ) {
+            pair<int,int> minDeadline = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
+            for ( int k = 0 ; k < readylist.size() ; k ++ ) {
+                if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
+                    nextPeriod( readylist[k] ) ;
+                    pqueue.push( readylist[k] ) ;
+                    readylist.erase(readylist.begin()+k ) ;
+                    k -- ;
+                }
+            } // for
+            time = minDeadline ;
+        } // if
+        else if ( !readylist.empty()) { // check period condition
             pair<int,int> minDeadline = findMinDeadline( readylist, temptime ) ; // find time less than temptime
             // cout << "temptime " << temptime.first << " " << temptime.second << endl ; 
             // cout << "minDeadline " << minDeadline.first << " " << minDeadline.second << endl ; 
-            if ( (minDeadline.first != temptime.first || minDeadline.second != temptime.second
-                || (minDeadline.first == temptime.first && minDeadline.second == temptime.second)) ) { // new task added
-                for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                    if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
-                        nextPeriod( readylist[k] ) ;
-                        pqueue.push( readylist[k] ) ;
-                        readylist.erase(readylist.begin()+k ) ;
-                        k -- ;
-                    }
+            for ( int k = 0 ; k < readylist.size() ; k ++ ) {
+                if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
+                    nextPeriod( readylist[k] ) ;
+                    pqueue.push( readylist[k] ) ;
+                    readylist.erase(readylist.begin()+k ) ;
+                    k -- ;
                 }
-                currenttask.current = currenttask.current - minusBigNumberTime( time, minDeadline ) ; 
-                time = minDeadline ;
-                 
-                if ( currenttask.current == 0 )
-                    readylist.push_back( currenttask ) ;
-                else
-                    pqueue.push( currenttask ) ;
+            } // for
+            currenttask.current = currenttask.current - minusBigNumberTime( time, minDeadline ) ; 
+            time = minDeadline ;
+                
+            if ( currenttask.current == 0 ) {
+                readylist.push_back( currenttask ) ;
             } // if
             else {
-                currenttask.current = 0 ;
-                time = temptime ;
-                readylist.push_back( currenttask ) ;
-                // taskaction_output = 1 ;
-            }
+                pqueue.push( currenttask ) ;
+            } // else
         } // if
         else {
             currenttask.current = 0 ;
             time = temptime ;
             readylist.push_back( currenttask ) ;
-            // taskaction_output = 1 ;
         } // else
 
         
