@@ -37,14 +37,25 @@ void nextPeriod( taskTime & readylist ) {
 
     readylist.current = readylist.excution ;
 } //
+
+pair<int,int> addBigNumberTaskTime( pair<int,int> time, int excutionTime ) {
+    if ( INT32_MAX - excutionTime <= time.first ) {
         time.first -= INT32_MAX ;
         time.second ++ ;
-        time.first += period ;
+        time.first += excutionTime ;
     } // if
     else {
-        time.first += period ;
+        time.first += excutionTime ;
     }
-} //
+    return time ;
+} // addBigNumberTaskTime
+
+int minusBigNumberTime( pair<int,int> time, pair<int,int> newtime ) {
+    if ( time.second != newtime.second ) {
+        return INT32_MAX - time.first + newtime.first ; 
+    } // if
+    return newtime.first - time.first ;
+} // minusBigNumberTime
 
 bool checkFinishCondition( vector<taskTime> & tasks, int size) { // check next_period time is the same
     if ( tasks.size() != size )
@@ -53,10 +64,21 @@ bool checkFinishCondition( vector<taskTime> & tasks, int size) { // check next_p
         if (tasks[i-1].deadline.first != tasks[i].deadline.first || tasks[i-1].deadline.second != tasks[i].deadline.second )
             return false ;
     } // for
-
-    cout << "over!!!!" << endl ;
     return true ;
 } // checkFinishCondition
+
+pair<int,int> findMinDeadline( vector<taskTime> readylist, pair<int,int> min ) {
+    // pair<int,int> min = {INT32_MAX,INT32_MAX} ;
+    for ( auto i : readylist ) {
+        if ( i.deadline.second < min.second )
+            min = i.deadline ;
+        else if ( i.deadline.second == min.second && i.deadline.first < min.first ) {
+            min = i.deadline ;
+        }
+    }
+
+    return min ;
+} // findLeastDeadline
 
 auto deadline_compare = [](const taskTime& p1, const taskTime& p2) {
     if ( p1.deadline == p2.deadline  )
@@ -97,6 +119,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{deadline_compare});
     }
     else if ( type == 0 ) {
+        cout << "rate _ compare" ;
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{rate_compare});
     }
     cout << "Success declare priority queue" << endl ;
@@ -105,14 +128,23 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     int preempted = 0 ;
     int  taskaction_output = -1, taskaction_current  = 0 ; // task action: start:0, end:1, preempted2, resume:3
     pair<int,int> time = {0,0}, outputtime = {0,0} ;
-    pqueue.push(taskTime( 0, task[0][0], task[0][1], task[0][0], pair<int,int>(task[0][1]-1,0 )) ) ;
+    pqueue.push(taskTime( 0, task[0][0], task[0][1], task[0][0], pair<int,int>(task[0][1],0 )) ) ;
+    // push 1st task to queue
     cout << "push task to queue" << endl ;
     // erase from readylist 
-
+    // pqueue.top().deadline.first
+    // pqueue.top().deadline.second
+    // currenttask
+    // perform: excution -> finish time == time + excution
+    // if ( time + excution > pqueue.top().deadline.first(second) )
+    // -> preempted
+    // else 
+    // finish the task and take next task
     // checkFinishCondition(readylist) -> bool
-    // while( readylist.size()!= task.size() || ! pqueue.empty() ) { // 
     while( !checkFinishCondition(readylist, task.size()) || ! pqueue.empty() ) { // 
         // cout << "Time: " << time.first << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
+        
+        outputtime = time ;
         taskTime newtask ; 
         if ( pqueue.size() != 0) {
             newtask = pqueue.top() ; 
@@ -120,50 +152,108 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         }
         outputtask = currenttask ;
         currenttask = newtask ;
-
-        if ( outputtask.index != -1 && outputtask.current == 0 ) 
+        if ( outputtask.index != -1 && outputtask.current == 0 )  
             taskaction_output = 1 ;
         else if ( outputtask.index != -1 && outputtask.current != 0 && currenttask.index != outputtask.index ) {
             taskaction_output = 2 ;
             preempted ++ ;
         }
 
-        // get task
-        taskTime newtask = pqueue.top() ; 
-        pqueue.pop() ;
-        // cout << "test " << pqueue.size() << endl ;
-        currenttask = newtask ;
         if ( currenttask.current != currenttask.excution )
             taskaction_current = 3 ;
         else if ( currenttask.current == currenttask.excution ) 
             taskaction_current = 0 ;
-        // do task
-        currenttask.current -- ;
-        if ( currenttask.current > 0 ) {
-            pqueue.push( currenttask ) ;
-        } // if
-        else if ( currenttask.current == 0 ) {
-            int tempindex = currenttask.excution ;
-            readylist.push_back( currenttask ) ;
-        }
 
-        if ( time.first == 0 && time.second == 0 ) { 
+        pair<int,int> temptime = addBigNumberTaskTime( time, currenttask.current ) ;
+        // cout << temptime.first << " test" << temptime.second << endl ;
+        if ( !readylist.empty()) { // check period condition
+            pair<int,int> minDeadline = findMinDeadline( readylist, temptime ) ; // find time less than temptime
+            // cout << "temptime " << temptime.first << " " << temptime.second << endl ; 
+            // cout << "minDeadline " << minDeadline.first << " " << minDeadline.second << endl ; 
+            if ( (minDeadline.first != temptime.first || minDeadline.second != temptime.second
+                || (minDeadline.first == temptime.first && minDeadline.second == temptime.second)) ) { // new task added
+                for ( int k = 0 ; k < readylist.size() ; k ++ ) {
+                    if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
+                        nextPeriod( readylist[k] ) ;
+                        pqueue.push( readylist[k] ) ;
+                        readylist.erase(readylist.begin()+k ) ;
+                        k -- ;
+                    }
+                }
+                currenttask.current = currenttask.current - minusBigNumberTime( time, minDeadline ) ; 
+                time = minDeadline ;
+                 
+                if ( currenttask.current == 0 )
+                    readylist.push_back( currenttask ) ;
+                else
+                    pqueue.push( currenttask ) ;
+            } // if
+            else {
+                currenttask.current = 0 ;
+                time = temptime ;
+                readylist.push_back( currenttask ) ;
+                // taskaction_output = 1 ;
+            }
+        } // if
+        else {
+            currenttask.current = 0 ;
+            time = temptime ;
+            readylist.push_back( currenttask ) ;
+            // taskaction_output = 1 ;
+        } // else
+
+        
+
+
+
+
+
+        // taskTime newtask ; 
+        // if ( pqueue.size() != 0) {
+        //     newtask = pqueue.top() ; 
+        //     pqueue.pop() ;
+        // }
+        // outputtask = currenttask ;
+        // currenttask = newtask ;
+
+        // if ( outputtask.index != -1 && outputtask.current == 0 )  
+        //     taskaction_output = 1 ;
+        // else if ( outputtask.index != -1 && outputtask.current != 0 && currenttask.index != outputtask.index ) {
+        //     taskaction_output = 2 ;
+        //     preempted ++ ;
+        // }
+
+        // if ( currenttask.current != currenttask.excution )
+        //     taskaction_current = 3 ;
+        // else if ( currenttask.current == currenttask.excution ) 
+        //     taskaction_current = 0 ;
+        // // do task
+        // currenttask.current -- ;
+        // if ( currenttask.current > 0 ) {
+        //     pqueue.push( currenttask ) ;
+        // } // if
+        // else if ( currenttask.current == 0 ) {
+        //     int tempindex = currenttask.excution ;
+        //     readylist.push_back( currenttask ) ;
+        // }
+
+        if ( outputtime.first == 0 && outputtime.second == 0 ) { 
             for ( int i = 1 ; i < task.size() ; i ++ ) {
-                pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], pair<int,int>(task[i][1]-1,0 )) ) ;
+                pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], pair<int,int>(task[i][1],0 )) ) ;
             } // for
         } // if
 
         // if time == deadline
-        if ( !readylist.empty()) { // check period condition
-            for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( time.first >= readylist[k].deadline.first && time.second >= readylist[k].deadline.second ) {
-                    nextPeriod( readylist[k] ) ;
-                    pqueue.push( readylist[k] ) ;
-                    readylist.erase(readylist.begin()+k ) ;
-                    k -- ;
-                }
-            }
-        } // else if
+        // if ( !readylist.empty()) { // check period condition
+        //     for ( int k = 0 ; k < readylist.size() ; k ++ ) {
+        //         if ( time.first >= readylist[k].deadline.first && time.second >= readylist[k].deadline.second ) {
+        //             nextPeriod( readylist[k] ) ;
+        //             pqueue.push( readylist[k] ) ;
+        //             readylist.erase(readylist.begin()+k ) ;
+        //             k -- ;
+        //         }
+        //     }
+        // } // else if
         // push to priority queue :
         //      if task not done push into queue
         //      if the task done -> push into readylist
@@ -173,7 +263,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         // output
         if ( Display == 1 ) {
             if ( outputtask.index != currenttask.index ) { // idle, no event
-                cout << time.second << " + " << time.first << " " ;
+                cout << outputtime.second << " + " << outputtime.first << " " ;
                 if ( outputtask.index != -1) {
                     cout << outputtask.index+1 << " " << taskaction_output << " " ;
                 } // if
@@ -181,7 +271,8 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
             }
         } // if
 
-        addBigNumber(time) ;
+        // addBigNumber(time) ;
+        // cout << "Time: " << time.first << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
     } // while
     cout << time.second << " + " << time.first << " " << currenttask.index+1 << " " << "1" << endl ;
     cout << " Total Time " << time.first+1 << "+ " << time.second << " Preempted " << preempted << " Finished" << endl ;
