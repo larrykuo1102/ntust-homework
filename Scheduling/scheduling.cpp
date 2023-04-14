@@ -25,8 +25,18 @@ void addBigNumber( pair<int,int> & time ) {
         time.first ++ ;
 } // bigNumber
 
-void addBigNumberDeadline( pair<int,int> & time, int period ) {
-    if ( INT32_MAX - period <= time.first ) {
+void nextPeriod( taskTime & readylist ) {
+    if ( INT32_MAX - readylist.period <= readylist.deadline.first ) {
+        readylist.deadline.first -= INT32_MAX ;
+        readylist.deadline.second ++ ;
+        readylist.deadline.first += readylist.period ;
+    } // if
+    else {
+        readylist.deadline.first += readylist.period ;
+    }
+
+    readylist.current = readylist.excution ;
+} //
         time.first -= INT32_MAX ;
         time.second ++ ;
         time.first += period ;
@@ -49,11 +59,19 @@ bool checkFinishCondition( vector<taskTime> & tasks, int size) { // check next_p
 } // checkFinishCondition
 
 auto deadline_compare = [](const taskTime& p1, const taskTime& p2) {
+    if ( p1.deadline == p2.deadline  )
+        return p1.index > p2.index ;
+
     return p1.deadline > p2.deadline;
 };
 
 auto rate_compare = [](const taskTime& p1, const taskTime& p2) {
-    return p1.excution/p1.period > p2.excution/p2.period;
+    // float rate1 = static_cast<float>(p1.excution) / p1.period;
+    // float rate2 = static_cast<float>(p2.excution) / p2.period;
+    if ( float(p1.current)/p1.period == float(p2.current)/p2.period ) 
+        return p1.index > p2.index ;
+
+    return float(p1.current)/p1.period < float(p2.current)/p2.period ;
 };
 
 class Compare {
@@ -75,22 +93,19 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     priority_queue<taskTime, vector<taskTime>, Compare> pqueue;
     // priority_queue<vector<taskTime>, vector<vector<taskTime>>, Compare> pqueue;
 
-    if ( type == 0 ) {
+    if ( type == 1 ) {
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{deadline_compare});
     }
-    else if ( type == 1 ) {
+    else if ( type == 0 ) {
         pqueue = priority_queue<taskTime, vector<taskTime>, Compare>(Compare{rate_compare});
     }
     cout << "Success declare priority queue" << endl ;
     // priority queue
     bool start = true ;
     int preempted = 0 ;
-    int  taskaction_output = -1, taskaction_current  = 0 ; // task action: start, 0, end, 1, preempted, 2, resume, 3
-    pair<int,int> time ;
-    for ( int i = 0 ; i < task.size() ; i ++ ) {
-        pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], pair<int,int>(task[i][1],0 )) ) ;
-    } // for
-    // push task to queue
+    int  taskaction_output = -1, taskaction_current  = 0 ; // task action: start:0, end:1, preempted2, resume:3
+    pair<int,int> time = {0,0}, outputtime = {0,0} ;
+    pqueue.push(taskTime( 0, task[0][0], task[0][1], task[0][0], pair<int,int>(task[0][1]-1,0 )) ) ;
     cout << "push task to queue" << endl ;
     // erase from readylist 
 
@@ -98,10 +113,17 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
     // while( readylist.size()!= task.size() || ! pqueue.empty() ) { // 
     while( !checkFinishCondition(readylist, task.size()) || ! pqueue.empty() ) { // 
         // cout << "Time: " << time.first << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
+        taskTime newtask ; 
+        if ( pqueue.size() != 0) {
+            newtask = pqueue.top() ; 
+            pqueue.pop() ;
+        }
         outputtask = currenttask ;
+        currenttask = newtask ;
+
         if ( outputtask.index != -1 && outputtask.current == 0 ) 
             taskaction_output = 1 ;
-        else if ( outputtask.index != -1 && outputtask.current != 0  ) {
+        else if ( outputtask.index != -1 && outputtask.current != 0 && currenttask.index != outputtask.index ) {
             taskaction_output = 2 ;
             preempted ++ ;
         }
@@ -125,12 +147,17 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
             readylist.push_back( currenttask ) ;
         }
 
+        if ( time.first == 0 && time.second == 0 ) { 
+            for ( int i = 1 ; i < task.size() ; i ++ ) {
+                pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], pair<int,int>(task[i][1]-1,0 )) ) ;
+            } // for
+        } // if
+
         // if time == deadline
         if ( !readylist.empty()) { // check period condition
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( time.first == readylist[k].deadline.first && time.second == readylist[k].deadline.second ) {
-                    addBigNumberDeadline( readylist[k].deadline, readylist[k].period ) ;
-                    readylist[k].current = readylist[k].excution ;
+                if ( time.first >= readylist[k].deadline.first && time.second >= readylist[k].deadline.second ) {
+                    nextPeriod( readylist[k] ) ;
                     pqueue.push( readylist[k] ) ;
                     readylist.erase(readylist.begin()+k ) ;
                     k -- ;
@@ -146,7 +173,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
         // output
         if ( Display == 1 ) {
             if ( outputtask.index != currenttask.index ) { // idle, no event
-                cout << time.first << " + " << time.second << " " ;
+                cout << time.second << " + " << time.first << " " ;
                 if ( outputtask.index != -1) {
                     cout << outputtask.index+1 << " " << taskaction_output << " " ;
                 } // if
@@ -156,7 +183,7 @@ void Schedule( vector<vector<int> > task, int Display, int type ) {
 
         addBigNumber(time) ;
     } // while
-
+    cout << time.second << " + " << time.first << " " << currenttask.index+1 << " " << "1" << endl ;
     cout << " Total Time " << time.first+1 << "+ " << time.second << " Preempted " << preempted << " Finished" << endl ;
 } //
 
@@ -174,7 +201,7 @@ int main(int argc, char const *argv[])
     cin >> R ;
     cout << "Total " << R << "runs." << endl ;
     for ( int run = 0 ; run < R ; run ++ ) {
-        cout << run << endl ;
+        cout << run+1 << endl ;
         cin >> S >> D >> N ;
         for ( int i = 0 ; i < N ; i ++ ) {
             int value1,value2 ;
