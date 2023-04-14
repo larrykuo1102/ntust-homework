@@ -2,6 +2,7 @@
 # include <vector>
 # include <queue>
 # include <functional>
+#include <chrono>
 using namespace std ;
 
 struct taskTime {
@@ -221,8 +222,11 @@ int main(int argc, char const *argv[])
             cin >> value1 >> value2 ;
             task.push_back({value1,value2}) ;
         } // for
+        auto t3 = std::chrono::high_resolution_clock::now();
         Schedule( task, D, S ) ;
-
+        auto t4 = std::chrono::high_resolution_clock::now();
+        std::chrono::duration<double, std::milli> duration3 = t4 - t3;
+        cout << "Time: " << duration3.count() << endl ;
 
 
         task.clear() ;
