@@ -17,7 +17,7 @@ struct taskTime {
 }; 
 
 void nextPeriod( taskTime & readylist ) {
-    if ( INT32_MAX - readylist.period <= readylist.deadline.first ) {
+    if ( INT32_MAX - readylist.period < readylist.deadline.first ) {
         readylist.deadline.first -= INT32_MAX ;
         readylist.deadline.second ++ ;
         readylist.deadline.first += readylist.period ;
@@ -30,7 +30,7 @@ void nextPeriod( taskTime & readylist ) {
 } //
 
 pair<int,int> addBigNumberTaskTime( pair<int,int> time, int excutionTime ) {
-    if ( INT32_MAX - excutionTime <= time.first ) {
+    if ( INT32_MAX - excutionTime < time.first ) {
         time.first -= INT32_MAX ;
         time.second ++ ;
         time.first += excutionTime ;
@@ -52,7 +52,7 @@ bool checkFinishCondition( vector<taskTime> & tasks, int size) { // check next_p
     if ( tasks.size() != size )
         return false ;
     for ( int i = 1 ; i < tasks.size() ; i ++ ) {
-        if (tasks[i-1].deadline.first != tasks[i].deadline.first || tasks[i-1].deadline.second != tasks[i].deadline.second )
+        if (tasks[i-1].deadline != tasks[i].deadline )
             return false ;
     } // for
     return true ;
@@ -71,10 +71,17 @@ pair<int,int> findMinDeadline( vector<taskTime> & readylist, pair<int,int> min )
 } // findLeastDeadline
 
 auto deadline_compare = [](const taskTime& p1, const taskTime& p2) {
-    if ( p1.deadline == p2.deadline  )
-        return p1.index > p2.index ;
+    if ( p1.deadline == p2.deadline ) {
+        return p1.period < p2.period ;
 
-    return p1.deadline > p2.deadline;
+    } // if
+    else {
+        if ( p1.deadline.second != p2.deadline.second )
+            return p1.deadline.second > p2.deadline.second ;
+        else  {
+            return p1.deadline.first > p2.deadline.first ;
+        }
+    } // else
 };
 
 auto rate_compare = [](const taskTime& p1, const taskTime& p2) {
@@ -138,11 +145,10 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
         else if ( task_current.current == task_current.excution ) 
             taskaction_current = 0 ;
 
-        pair<int,int> temptime = addBigNumberTaskTime( time, task_current.current ) ;
         if ( task_current.index == -1 ) {
             pair<int,int> minDeadline = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
+                if ( minDeadline == readylist[k].deadline ) {
                     nextPeriod( readylist[k] ) ;
                     pqueue.push( readylist[k] ) ;
                     readylist.erase(readylist.begin()+k ) ;
@@ -152,9 +158,10 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
             time = minDeadline ;
         } // if
         else if ( !readylist.empty()) { // check period condition
+            pair<int,int> temptime = addBigNumberTaskTime( time, task_current.current ) ;
             pair<int,int> minDeadline = findMinDeadline( readylist, temptime ) ; // find time less than temptime
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( minDeadline.first == readylist[k].deadline.first && minDeadline.second == readylist[k].deadline.second ) {
+                if ( minDeadline == readylist[k].deadline ) {
                     nextPeriod( readylist[k] ) ;
                     pqueue.push( readylist[k] ) ;
                     readylist.erase(readylist.begin()+k ) ;
@@ -172,6 +179,7 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
             } // else
         } // if
         else {
+            pair<int,int> temptime = addBigNumberTaskTime( time, task_current.current ) ;
             task_current.current = 0 ;
             time = temptime ;
             readylist.push_back( task_current ) ;
@@ -200,9 +208,10 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
     } // while
     // cout << time.second << " + " << time.first << " " << task_current.index+1 << " " << "1" << endl ;
     if ( Display == 1)
-        cout << long(time.second)*INT32_MAX + time.first << " " << task_current.index+1 << " " << "1" << endl ;
+        cout << (long long)(time.second)*INT32_MAX + time.first << " " << task_current.index+1 << " " << "1" << endl ;
     // cout << " Total Time " << time.first+1 << "+ " << time.second << " Preempted " << preempted << " Finished" << endl ;
-    cout << long(time.second)*INT32_MAX + time.first+1 << " " << preempted <<  endl ;
+    time = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
+    cout << (long long)(time.second)*INT32_MAX + time.first << " " << preempted <<  endl ;
 } // Schedule
 
 
