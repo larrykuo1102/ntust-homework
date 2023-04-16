@@ -179,9 +179,8 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
             } // else
         } // if
         else {
-            pair<int,int> temptime = addBigNumberTaskTime( time, task_current.current ) ;
             task_current.current = 0 ;
-            time = temptime ;
+            time = addBigNumberTaskTime( time, task_current.current ) ;
             readylist.push_back( task_current ) ;
         } // else
 
@@ -196,7 +195,6 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
         // output
         if ( Display == 1 ) {
             if ( task_pre.index != task_current.index ) { // idle, no event
-                // cout << outputtime.second << " + " << outputtime.first << " " ;
                 cout << long(outputtime.second)*INT32_MAX + outputtime.first << " " ;
                 if ( task_pre.index != -1) {
                     cout << task_pre.index+1 << " " << taskaction_pre << " " ;
@@ -206,10 +204,8 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
         } // if
 
     } // while
-    // cout << time.second << " + " << time.first << " " << task_current.index+1 << " " << "1" << endl ;
     if ( Display == 1)
         cout << (long long)(time.second)*INT32_MAX + time.first << " " << task_current.index+1 << " " << "1" << endl ;
-    // cout << " Total Time " << time.first+1 << "+ " << time.second << " Preempted " << preempted << " Finished" << endl ;
     time = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
     cout << (long long)(time.second)*INT32_MAX + time.first << " " << preempted <<  endl ;
 } // Schedule
