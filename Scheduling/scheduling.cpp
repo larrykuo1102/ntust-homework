@@ -5,43 +5,57 @@
 #include <chrono>
 using namespace std ;
 
+struct bigInteger{
+    int first ;
+    int second ;
+    bigInteger() : first(0), second(0) {}
+    bigInteger(int first, int second) : first(first), second(second) {}
+} ;
+
 struct taskTime {
     int index ;
     int excution ;
     int period ;
     int current ; // remain excution time
-    pair<int,int> deadline ; // deadline or next period begin
-    taskTime(int index,int excution,int period, int current, pair<int,int> deadline) : index(index),excution(excution), period(period),
+    bigInteger deadline ; // deadline or next period begin
+    taskTime(int index,int excution,int period, int current, bigInteger deadline) : index(index),excution(excution), period(period),
         current(current),deadline(deadline) {}
     taskTime():index(-1){}
 }; 
 
+int bigIntegerCompare( bigInteger a, bigInteger b) {
+    if ( a.first == b.first && a.second == b.second )
+        return 0 ;
+    else if ( a.second > b.second || ( a.second == b.second && a.first > b.first ) ) {
+        return 1 ;
+    }
+    else {
+        return -1 ;
+    }
+}
+ 
 void nextPeriod( taskTime & readylist ) {
     if ( INT32_MAX - readylist.period < readylist.deadline.first ) {
         readylist.deadline.first -= INT32_MAX ;
         readylist.deadline.second ++ ;
-        readylist.deadline.first += readylist.period ;
     } // if
-    else {
-        readylist.deadline.first += readylist.period ;
-    }
+
+    readylist.deadline.first += readylist.period ;
 
     readylist.current = readylist.excution ;
 } //
 
-pair<int,int> addBigNumberTaskTime( pair<int,int> time, int excutionTime ) {
+bigInteger addBigNumberTaskTime( bigInteger time, int & excutionTime ) {
     if ( INT32_MAX - excutionTime < time.first ) {
         time.first -= INT32_MAX ;
         time.second ++ ;
-        time.first += excutionTime ;
     } // if
-    else {
-        time.first += excutionTime ;
-    }
+    time.first += excutionTime ;
+
     return time ;
 } // addBigNumberTaskTime
 
-int minusBigNumberTime( pair<int,int> & time, pair<int,int> & newtime ) {
+int minusBigNumberTime( bigInteger & time, bigInteger & newtime ) {
     if ( time.second != newtime.second ) {
         return INT32_MAX - time.first + newtime.first ; 
     } // if
@@ -51,14 +65,15 @@ int minusBigNumberTime( pair<int,int> & time, pair<int,int> & newtime ) {
 bool checkFinishCondition( vector<taskTime> & tasks, int size) { // check next_period time is the same
     if ( tasks.size() != size )
         return false ;
-    for ( int i = 1 ; i < tasks.size() ; i ++ ) {
-        if (tasks[i-1].deadline != tasks[i].deadline )
+    for ( int i = 1 ; i < size ; i ++ ) {
+        if ( bigIntegerCompare(tasks[i-1].deadline,tasks[i].deadline) != 0  )
             return false ;
     } // for
+
     return true ;
 } // checkFinishCondition
 
-pair<int,int> findMinDeadline( vector<taskTime> & readylist, pair<int,int> min ) {
+bigInteger findMinDeadline( vector<taskTime> & readylist, bigInteger min ) {
     for ( auto i : readylist ) {
         if ( i.deadline.second < min.second )
             min = i.deadline ;
@@ -71,16 +86,13 @@ pair<int,int> findMinDeadline( vector<taskTime> & readylist, pair<int,int> min )
 } // findLeastDeadline
 
 auto deadline_compare = [](const taskTime& p1, const taskTime& p2) {
-    if ( p1.deadline == p2.deadline ) {
+    if ( bigIntegerCompare(p1.deadline,p2.deadline)  == 0 ) 
         return p1.period < p2.period ;
-
-    } // if
     else {
         if ( p1.deadline.second != p2.deadline.second )
             return p1.deadline.second > p2.deadline.second ;
-        else  {
+        else  
             return p1.deadline.first > p2.deadline.first ;
-        }
     } // else
 };
 
@@ -100,7 +112,7 @@ public:
     function<bool(const taskTime&, const taskTime&)> comp;
 };
 
-void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
+void Schedule( vector<vector<int> > & task, int & Display, int & type, int & taskSize ) {
     // cout << "Scheduler Begin" << endl ;
     vector<taskTime> readylist ; // { index, excutionTime, period, current, deadline}
     taskTime task_current ;
@@ -118,11 +130,12 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
     bool start = true ;
     int preempted = 0 ;
     int  taskaction_pre = -1, taskaction_current  = 0 ; // task action: start:0, end:1, preempted2, resume:3
-    pair<int,int> time = {0,0}, outputtime = {0,0} ;
-    pqueue.push(taskTime( 0, task[0][0], task[0][1], task[0][0], pair<int,int>(task[0][1],0 )) ) ;
+    // bigInteger time = {0,0}, outputtime = {0,0} ;
+    bigInteger time = bigInteger(0,0), outputtime = bigInteger(0,0) ;
+    pqueue.push(taskTime( 0, task[0][0], task[0][1], task[0][0], bigInteger(task[0][1],0 )) ) ;
     // push 1st task to queue
 
-    while( !checkFinishCondition(readylist, task.size()) || ! pqueue.empty() ) { // 
+    while( !checkFinishCondition(readylist, taskSize) || ! pqueue.empty() ) { // 
         // cout << "Time: " << time.first << " " << time.second << " Readylist length: " << readylist.size() << " pqueue: " << pqueue.size() << endl ;
         
         outputtime = time ;
@@ -146,22 +159,24 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
             taskaction_current = 0 ;
 
         if ( task_current.index == -1 ) {
-            pair<int,int> minDeadline = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
+            bigInteger minDeadline = findMinDeadline( readylist, {INT32_MAX,INT32_MAX} ) ;
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( minDeadline == readylist[k].deadline ) {
+                if ( bigIntegerCompare(minDeadline,readylist[k].deadline) == 0 ) {
                     nextPeriod( readylist[k] ) ;
                     pqueue.push( readylist[k] ) ;
                     readylist.erase(readylist.begin()+k ) ;
                     k -- ;
                 }
             } // for
+
             time = minDeadline ;
+    
         } // if
         else if ( !readylist.empty()) { // check period condition
-            pair<int,int> temptime = addBigNumberTaskTime( time, task_current.current ) ;
-            pair<int,int> minDeadline = findMinDeadline( readylist, temptime ) ; // find time less than temptime
+            bigInteger temptime = addBigNumberTaskTime( time, task_current.current ) ;
+            bigInteger minDeadline = findMinDeadline( readylist, temptime ) ; // find time less than temptime
             for ( int k = 0 ; k < readylist.size() ; k ++ ) {
-                if ( minDeadline == readylist[k].deadline ) {
+                if ( bigIntegerCompare(minDeadline,readylist[k].deadline) == 0  ) {
                     nextPeriod( readylist[k] ) ;
                     pqueue.push( readylist[k] ) ;
                     readylist.erase(readylist.begin()+k ) ;
@@ -179,16 +194,17 @@ void Schedule( vector<vector<int> > & task, int & Display, int & type ) {
             } // else
         } // if
         else {
-            task_current.current = 0 ;
+            
             time = addBigNumberTaskTime( time, task_current.current ) ;
+            task_current.current = 0 ;
             readylist.push_back( task_current ) ;
         } // else
 
         
 
         if ( outputtime.first == 0 && outputtime.second == 0 ) { 
-            for ( int i = 1 ; i < task.size() ; i ++ ) {
-                pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], pair<int,int>(task[i][1],0 )) ) ;
+            for ( int i = 1 ; i < taskSize ; i ++ ) {
+                pqueue.push(taskTime( i, task[i][0], task[i][1], task[i][0], bigInteger(task[i][1],0 )) ) ;
             } // for
         } // if
 
@@ -228,7 +244,7 @@ int main(int argc, char const *argv[])
             task.push_back({value1,value2}) ;
         } // for
         auto t3 = std::chrono::high_resolution_clock::now();
-        Schedule( task, D, S ) ;
+        Schedule( task, D, S, N ) ;
         auto t4 = std::chrono::high_resolution_clock::now();
         std::chrono::duration<double, std::milli> duration3 = t4 - t3;
         cout << "Time: " << duration3.count() << endl ;
