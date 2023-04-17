@@ -1,16 +1,16 @@
 import galois
 import numpy as np
 print(galois.__version__)
-value =9
-irre_poly="x^2 + 1"
-# x^2 + 1
-# x^2 + x + 2
-# x^2 + 2x + 2
+Listirreducible_polys = list(galois.irreducible_polys(2, 3))
+print(Listirreducible_polys)
+
+value =8
+irre_poly="x^3 + x^2 + 1"
 GF = galois.GF(int(value),repr="poly",irreducible_poly=irre_poly) # poly, int, power
 
 note_list = []
 all_note_list = []
-poly_index = ['1','2','x + 1','x + 2','2x + 1','2x + 2','x','2x']
+poly_index = ['1','α','α + 1','α^2','α^2 + 1','α^2 + α','α^2 + α + 1']
 mult_table = [[GF(i)*GF(j) for j in range(int(value))] for i in range(int(value))]
 for list_index in poly_index :
     print(list_index, ":")
@@ -57,9 +57,9 @@ print(all_note_list)
 # print( all_note_list )
 
 
-Listirreducible_polys = list(galois.irreducible_polys(3, 2))
+
 # for i in Listirreducible_polys:
-print(Listirreducible_polys)
+
 # print(GF.properties)
 
 
