@@ -34,4 +34,11 @@ x^3 + x + 1, x^3 + x^2 + 1
 2. [x^3 + x^2 + 1](./GF_Answer/GF(2^3)poly_index_2.txt)
 
 ## GF(11) && 10 queens 
+### multiple table
+[10 queens table](./GF_Answer/GF(11)index.txt)
+
+### possible answer
+1. 10C4[possible answer](./GF_Answer/GF(11)_possible_ans10C4)
+2. 10C5[possible answer](./GF_Answer/GF(11)_possible_ans10C5)
+3. 10C6[possible answer](./GF_Answer/GF(11)_possible_ans10C6)
 
