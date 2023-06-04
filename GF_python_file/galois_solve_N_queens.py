@@ -1,7 +1,7 @@
 import galois
 
 n = 11
-queens = n - 1
+queensum = n - 1
 solve = []
 
 GF = galois.GF(int(n)) 
@@ -52,24 +52,25 @@ def check_diagonal_queens(lst):
 
 
 def find_empty_positions(queens):
-    empty_positions = [True] * 8
-    diag1 = [True] * 15
-    diag2 = [True] * 15
-
-    # 设置已知皇后的位置为 False，并排除斜线和反斜线上的位置
+    global queensum
+    occupied = [[False] * queensum for _ in range(queensum)]
+    row_pos = [False] * queensum
+    col_pos = [False] * queensum
+    # 设置已知皇后的位置
     for queen in queens:
         row, col = queen
-        empty_positions[col] = False
-        diag1[row + col] = False
-        diag2[row - col + 7] = False
+        row_pos[row] = True
+        col_pos[col] = True
 
-    # 查找空位
-    result = []
-    for i in range(8):
-        if empty_positions[i] and diag1[queens[-1][0] + i] and diag2[queens[-1][0] - i + 7]:
-            result.append((len(result), i))  # 存储位置的行索引和列索引
 
-    return result
+    # 找到空位置的行和列
+    empty_positions = []
+    for row in range(queensum):
+        for col in range(queensum):
+            if not row_pos[row] and not col_pos[col]:
+                empty_positions.append((row, col))
+
+    return empty_positions
 
 
 def get_Galois_position(n):
@@ -86,9 +87,9 @@ def get_Galois_position(n):
     return note_list
 
 def run( n ) :
-    global queens
-    print( queens, "queens")
-    solve = [-1 for i in range(queens)]
+    global queensum
+    print( queensum, "queens")
+    solve = [-1 for i in range(queensum)]
     print(solve)
 
     for galois_index in range(1,n) :
