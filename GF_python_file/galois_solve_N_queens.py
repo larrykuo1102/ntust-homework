@@ -7,7 +7,12 @@ n = 10007 # 997 1009 10007
 queensum = n - 1
 solve = []
 mult_table = []
-
+galois_inform = {
+    "diag1" : [0]*(queensum*2-1),
+    "diag2" : [0]*(queensum*2-1),
+    "row" : [0]*queensum,
+    "col" : [0]*queensum
+}
 
 
 '''
@@ -32,11 +37,18 @@ else col = value
 
 
 @numba.jit(nopython=True)
-def get_mult_table(n):
-    mult_table = np.zeros((n, n), dtype=np.int64)
-    for i in range(n):
-        for j in range(n):
-            mult_table[i, j] = (i * j) % n
+def get_mult_table(index):
+    global n
+    # mult_table = np.zeros((n, n), dtype=np.int64)
+    mult_table = []
+    for i in range(1,n):
+        for j in range(1,n):
+            temp = (i * j) % n
+            if ( temp == index ) :
+                mult_table.append(j-1)
+                # mult_table[i, j] = temp
+                # mult_table[i, j+1:] = -1
+                break
     return mult_table
 
 def check_diagonal_queens(lst):
@@ -110,29 +122,53 @@ def get_Galois_position(n):
             
     return note_list
 
-def initial_Galois_table() :
+def initial_Galois_table( index ) :
     global n 
     global mult_table
     if n > 2 **20 :
         GF = galois.GF(int(n))
         print(GF.ufunc_mode)
-        mult_table = [[GF(i)*GF(j) for j in range(n)] for i in range(n)]
+
+        for i in range(1,n):
+            for j in range(1,n):
+                temp = GF(i)*GF(j)
+                if ( temp == index ) :
+                    mult_table.append(j-1)
+                    break
     else :
-        mult_table = get_mult_table(n)
+        mult_table = get_mult_table(index)
+
+def select_queens() :
+    pass
+
+def initial_galois_inform() :
+    global mult_table
+    global galois_inform
+    global queensum
+    for index, i in enumerate(mult_table) :
+        row, col = index, i
+        galois_inform["col"][col] += 1
+        galois_inform["row"][row] += 1
+        galois_inform["diag1"][row + col] += 1 # 反斜
+        galois_inform["diag2"][row - col + (queensum-1)] += 1 # 斜線
+
 
 def run( n ) :
     global queensum
+    global galois_inform
     print( queensum, "queens")
     solve = [-1 for i in range(queensum)]
     # print(solve)
     currtime = time.time()
-    initial_Galois_table()
+    initial_Galois_table(1)
+    initial_galois_inform() # 計算 row, col 斜線 反斜線 裡面是否有重複 如果值超過2 代表有conflict
+    # print(galois_inform)
     print( time.time() - currtime)
     
     print(len(mult_table))
-    for galois_index in range(1,n) :
-        galois_pos = get_Galois_position(galois_index)
-        print(galois_pos)
+    currtime = time.time()
+    print( time.time() - currtime)
+    
 
 
 
