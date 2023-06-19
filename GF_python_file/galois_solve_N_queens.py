@@ -3,7 +3,7 @@ import time
 import numba
 import numpy as np
 from math import trunc
-n = 10007 # 997 1009 10007
+n = 997 # 997 1009 10007
 queensum = n - 1
 solve = []
 mult_table = []
@@ -139,6 +139,28 @@ def initial_Galois_table( index ) :
         mult_table = get_mult_table(index)
 
 def select_queens() :
+    global galois_inform
+    diag1 = []
+    diag2 = []
+    col = []
+    row = []
+    for index,i in enumerate(galois_inform["diag1"]) :
+        if i > 1 :
+            diag1.append((index,i))
+    for index,i in enumerate(galois_inform["diag2"]) :
+        if i > 1 :
+            diag2.append((index,i))
+    for index,i in enumerate(galois_inform["col"]) :
+        if i > 1 :
+            col.append((index,i))
+    for index,i in enumerate(galois_inform["row"]) :
+        if i > 1 :
+            row.append((index,i))
+            
+    print( diag1 )
+    print( diag2 )
+    print( col )
+    print( row )
     pass
 
 def initial_galois_inform() :
@@ -153,27 +175,28 @@ def initial_galois_inform() :
         galois_inform["diag2"][row - col + (queensum-1)] += 1 # 斜線
 
 
-def run( n ) :
+def run() :
     global queensum
     global galois_inform
     print( queensum, "queens")
     solve = [-1 for i in range(queensum)]
     # print(solve)
     currtime = time.time()
-    initial_Galois_table(1)
+    initial_Galois_table(1) # argument: index 
     initial_galois_inform() # 計算 row, col 斜線 反斜線 裡面是否有重複 如果值超過2 代表有conflict
     # print(galois_inform)
     print( time.time() - currtime)
     
     print(len(mult_table))
     currtime = time.time()
+    select_queens()
     print( time.time() - currtime)
     
 
 
 
 print( galois.prev_prime(1000))
-run(n)
+run()
 # queens = [ [3, 7], [7, 6], [4, 5] ] # [2, 2], [6, 1], [1, 4], [5, 3]
 # queens = [[i[0]-1, i[1]-1] for i in queens]
 # print(queens)
