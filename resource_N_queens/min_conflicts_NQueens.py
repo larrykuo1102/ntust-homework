@@ -12,13 +12,13 @@ diagl_conflicts = []    # Keeps track of left diagonal conflicts
 
 # Read in the test n dimensions of the file into a list and return
 def readInFile():
-    with open('./resource_N_queens/nqueens.txt', 'r') as file:
+    with open('resource_N_queens/nqueens.txt', 'r') as file:
         dimensionArray = []
         for line in file:
             dimensionArray.append(int(line.rstrip('\n')))
     file.close()
     # Prep & clear contents of output file
-    open('./resource_N_queens/nqueens_out.txt', 'w').close()
+    # open('resource_N_queens/nqueens_out.txt', 'w').close()
     return dimensionArray
 
 
@@ -26,7 +26,7 @@ def readInFile():
 def writeToFile():
     # Add one to each index to convert from 0 to 1 base indexing
     solutionArrayStr = str([x + 1 for x in board])
-    with open('./resource_N_queens/nqueens_out.txt', 'a', 64) as file:
+    with open('resource_N_queens/nqueens_out.txt', 'a', 64) as file:
         file.write(solutionArrayStr + "\n\n")
     file.close()
 
@@ -64,6 +64,11 @@ def minConflictPos(col):
     choice = random.choice(minConflictRows)
     return choice
 
+def changetype( ori ) :
+    # print(ori)
+    ans = [ [index+1,i+1] if i != None else [index+1,-1] for index,i in enumerate(ori) ]
+
+    return ans
 
 # Sets up the board using a greedy algorithm
 def createBoard():
@@ -115,6 +120,9 @@ def createBoard():
                 # Keep track of which column was not placed to be handled later
                 notPlaced.append(col)
 
+    print( "initial", str(len(notPlaced)), "not placed" )
+    print(changetype(board))
+    # return
     for col in notPlaced:
         # Place the remaining queen locations
         board[col] = rowSet.pop()
@@ -169,9 +177,11 @@ def solveNQueens():
         #       equals 3, then there are no conflicts since the queen is alone in it's row and both diagonals
         elif numConflicts == 3:
             # Solution is found
+            print("Iteration", str(iteration))
             return True
         iteration += 1
     # If no solution is found in under average number of iterations, return False
+    print("Iteration", str(iteration))
     return False
 
 def main():
@@ -204,10 +214,12 @@ def main():
             # Continues restarting solveNQueens() until a solution is found
             while (not solved):
                 # Solved will be True when a solution is returned
+                print("not solved")
                 solved = solveNQueens()
 
-            print("Board configuration found for size " + str(dimension))
-
+            # print("Board configuration found for size " + str(dimension))
+            print("Final Board")
+            print(changetype(board))
             writeToFile()
 
             # Calculate and print time taken to find solution
