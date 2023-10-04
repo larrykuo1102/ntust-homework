@@ -1,0 +1,28 @@
+/* 棋盤樣式 */
+.chessboard {
+    display: grid;
+    /* 使用 repeat(auto-fill, 50px) 讓列和行根據內容自動調整 */
+    grid-template-columns: repeat(auto-fill, 25px);
+    grid-template-rows: repeat(auto-fill, 25px);
+    /* border: 2px solid #000; 添加格線 */
+}
+
+
+.cell {
+    width: 25px;
+    height: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    background-color: #e6b104; /* 正常格子的顏色 */
+    border: 1px solid #000; /* 添加格線 */
+}
+
+
+
+.queen {
+    /*background-color: #FF0000; 皇后的顏色*/
+    
+    color: #060505;
+}
